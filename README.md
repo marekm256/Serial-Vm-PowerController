@@ -32,7 +32,7 @@ Settings, logs and runtime status are stored in the same folder as `SerialVmPowe
 
 ```text
 settings.xml
-shutdown.log
+log.txt
 runtime-status.xml
 ```
 
@@ -55,7 +55,7 @@ The service executable path is installed as:
 SerialVmPowerController.exe --service
 ```
 
-Important VMware note: the service is installed under the default Windows service account. On VMware Workstation/KVM setups, test that `vmrun.exe` launched from the service can see and control the same VM that runs in the interactive user session. Any failure is written to `shutdown.log`.
+Important VMware note: the service is installed under the default Windows service account. On VMware Workstation/KVM setups, test that `vmrun.exe` launched from the service can see and control the same VM that runs in the interactive user session. Any failure is written to `log.txt`.
 
 KVM startup note: `vmware-kvm.exe` is an interactive desktop application. The service starts it in the active console user's session, not in hidden Session 0. Automatic Windows logon should be enabled on the panel if the VM must appear immediately after boot.
 

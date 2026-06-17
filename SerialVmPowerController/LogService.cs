@@ -14,13 +14,13 @@ namespace SerialVmPowerController
         private readonly object _sync = new object();
 
         /// <summary>
-        /// Creates a logger that stores shutdown.log in the provided configuration folder.
+        /// Creates a logger that stores log.txt in the provided configuration folder.
         /// </summary>
         /// <param name="configDirectory">Directory used for the persistent log file.</param>
         public LogService(string configDirectory)
         {
             ConfigDirectory = configDirectory;
-            LogPath = Path.Combine(configDirectory, "shutdown.log");
+            LogPath = Path.Combine(configDirectory, "log.txt");
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace SerialVmPowerController
         public string ConfigDirectory { get; private set; }
 
         /// <summary>
-        /// Full path to shutdown.log.
+        /// Full path to log.txt.
         /// </summary>
         public string LogPath { get; private set; }
 
@@ -168,7 +168,7 @@ namespace SerialVmPowerController
         }
 
         /// <summary>
-        /// Opens shutdown.log for read access without blocking the service writer.
+        /// Opens log.txt for read access without blocking the service writer.
         /// </summary>
         /// <returns>A readable file stream with shared read/write/delete access.</returns>
         private FileStream OpenLogForSharedRead()

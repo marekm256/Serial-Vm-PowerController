@@ -293,7 +293,7 @@ namespace SerialVmPowerController
         }
 
         /// <summary>
-        /// Reads new lines appended to shutdown.log by either the GUI or the service process.
+        /// Reads new lines appended to log.txt by either the GUI or the service process.
         /// </summary>
         /// <param name="sender">Timer that raised the event.</param>
         /// <param name="e">Timer event data.</param>
@@ -500,7 +500,7 @@ namespace SerialVmPowerController
         }
 
         /// <summary>
-        /// Appends any new text written to shutdown.log since the previous read.
+        /// Appends any new text written to log.txt since the previous read.
         /// </summary>
         private void RefreshLogFromFile()
         {
@@ -533,7 +533,7 @@ namespace SerialVmPowerController
         /// <summary>
         /// Appends raw text from the shared log file to the UI from any thread.
         /// </summary>
-        /// <param name="text">Raw text read from shutdown.log.</param>
+        /// <param name="text">Raw text read from log.txt.</param>
         private void AppendLogText(string text)
         {
             if (!Dispatcher.CheckAccess())
