@@ -2,13 +2,43 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Serial VM Power Controller"
-        Height="760"
-        Width="1080"
-        MinHeight="660"
-        MinWidth="940"
+        Height="720"
+        Width="1000"
+        MinHeight="600"
+        MinWidth="900"
         Background="#F4F6F8"
         WindowStartupLocation="CenterScreen"
         Closing="Window_Closing">
+    <Window.Resources>
+        <Style x:Key="InfoBadgeStyle" TargetType="{x:Type Border}">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#E8EEF7" />
+            <Setter Property="BorderBrush" Value="#9CAFC7" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="ToolTipService.ShowDuration" Value="60000" />
+        </Style>
+
+        <Style x:Key="InfoBadgeTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Text" Value="?" />
+            <Setter Property="Foreground" Value="#37516F" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="InfoToolTipTextStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="MaxWidth" Value="380" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="18" />
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -100,24 +130,29 @@
                     <Button x:Name="InstallServiceButton"
                             Content="Install service"
                             MinWidth="112"
-                            Click="InstallServiceButton_Click" />
+                            Click="InstallServiceButton_Click"
+                            ToolTip="Installs this executable as the Windows Service. Run the GUI as administrator for this action." />
                     <Button x:Name="UninstallServiceButton"
                             Content="Uninstall"
                             MinWidth="92"
-                            Click="UninstallServiceButton_Click" />
+                            Click="UninstallServiceButton_Click"
+                            ToolTip="Removes the Windows Service registration for this application." />
                     <Button x:Name="StartServiceButton"
                             Content="Start"
                             MinWidth="78"
-                            Click="StartServiceButton_Click" />
+                            Click="StartServiceButton_Click"
+                            ToolTip="Starts the Windows Service so it can launch the VM and monitor the configured COM port." />
                     <Button x:Name="StopServiceButton"
                             Content="Stop"
                             MinWidth="78"
-                            Click="StopServiceButton_Click" />
+                            Click="StopServiceButton_Click"
+                            ToolTip="Stops the Windows Service and serial monitoring." />
                     <Button x:Name="RefreshServiceButton"
                             Content="Refresh"
                             MinWidth="86"
                             Click="RefreshServiceButton_Click"
-                            Margin="0" />
+                            Margin="0"
+                            ToolTip="Refreshes service, monitor and CTS status shown in the GUI." />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -147,15 +182,28 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="0"
-                                           Text="COM port"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="0"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="COM port"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Serial port connected to the UPS signal cable. The service opens this port and watches the CTS input line." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <ComboBox x:Name="ComPortComboBox"
                                           Grid.Row="0"
                                           Grid.Column="1"
                                           IsEditable="True"
-                                          Margin="0,0,8,10" />
+                                          Margin="0,0,8,10"
+                                          ToolTip="Serial port connected to the UPS signal cable. The CTS input is monitored on this port." />
                                 <Button x:Name="RefreshPortsButton"
                                         Grid.Row="0"
                                         Grid.Column="2"
@@ -167,11 +215,35 @@
                                             Grid.Column="1"
                                             Grid.ColumnSpan="2"
                                             Orientation="Horizontal">
-                                    <CheckBox x:Name="DtrCheckBox"
-                                              Content="Enable DTR"
-                                              Margin="0,0,24,0" />
-                                    <CheckBox x:Name="RtsCheckBox"
-                                              Content="Enable RTS" />
+                                    <StackPanel Orientation="Horizontal"
+                                                Margin="0,0,24,0">
+                                        <CheckBox x:Name="DtrCheckBox"
+                                                  Content="Enable DTR"
+                                                  ToolTip="Keeps the serial DTR output active while the port is open. Useful for test wiring where DTR is bridged to CTS." />
+                                        <Border Style="{StaticResource InfoBadgeStyle}">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                               Text="Keeps the DTR output line active while monitoring. For bench tests, this can provide the signal that is bridged to CTS." />
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="RtsCheckBox"
+                                                  Content="Enable RTS"
+                                                  ToolTip="Keeps the serial RTS output active while the port is open. Leave enabled if the UPS cable expects RTS/CTS handshaking." />
+                                        <Border Style="{StaticResource InfoBadgeStyle}">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                               Text="Keeps the RTS output line active while monitoring. Some serial UPS or adapter wiring expects RTS/CTS handshaking to be active." />
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                        </Border>
+                                    </StackPanel>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
@@ -190,40 +262,92 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="0"
-                                           Text="CTS debounce (s)"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="0"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="CTS debounce (s)"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="How long CTS must stay ON before shutdown starts. This filters short spikes or contact bounce from the UPS signal." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBox x:Name="DebounceSecondsBox"
                                          Grid.Row="0"
                                          Grid.Column="1"
-                                         Margin="0,0,0,8" />
+                                         Margin="0,0,0,8"
+                                         ToolTip="Seconds CTS must stay ON before shutdown starts." />
 
-                                <TextBlock Grid.Row="1"
-                                           Grid.Column="0"
-                                           Text="Soft timeout (s)"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="1"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Soft timeout (s)"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Maximum time to wait for VMware soft stop. Windows XP can reach the 'safe to turn off' screen while VMware is still running, so the app continues after this timeout." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBox x:Name="SoftTimeoutSecondsBox"
                                          Grid.Row="1"
                                          Grid.Column="1"
-                                         Margin="0,0,0,8" />
+                                         Margin="0,0,0,8"
+                                         ToolTip="Maximum seconds to wait for vmrun stop soft." />
 
-                                <TextBlock Grid.Row="2"
-                                           Grid.Column="0"
-                                           Text="Hard timeout (s)"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="2"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Hard timeout (s)"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Maximum time to wait for VMware hard stop when soft stop times out, fails, or the VM is still listed after soft stop." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBox x:Name="HardTimeoutSecondsBox"
                                          Grid.Row="2"
                                          Grid.Column="1"
-                                         Margin="0,0,0,8" />
+                                         Margin="0,0,0,8"
+                                         ToolTip="Maximum seconds to wait for vmrun stop hard." />
 
-                                <TextBlock Grid.Row="3"
-                                           Grid.Column="0"
-                                           Text="Host shutdown delay (s)"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="3"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Host shutdown delay (s)"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Delay passed to shutdown.exe before the Windows 11 host powers off after the VM stop sequence finishes." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBox x:Name="HostShutdownDelaySecondsBox"
                                          Grid.Row="3"
-                                         Grid.Column="1" />
+                                         Grid.Column="1"
+                                         ToolTip="Seconds before the host shutdown command powers off Windows." />
                             </Grid>
                         </GroupBox>
                     </StackPanel>
@@ -241,27 +365,53 @@
                                     <RowDefinition Height="42" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="0"
-                                           Text="Install check"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="0"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="Install check"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Shows whether vmrun.exe and vmware-kvm.exe were found in the default VMware Workstation installation folder." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBlock x:Name="VmwareInstallStatusText"
                                            Grid.Row="0"
                                            Grid.Column="1"
                                            Grid.ColumnSpan="2"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,10"
-                                           Foreground="#4B5563" />
+                                           Foreground="#4B5563"
+                                           ToolTip="Checks the default VMware Workstation tools path used by the service." />
 
-                                <TextBlock Grid.Row="1"
-                                           Grid.Column="0"
-                                           Text="VMX file"
-                                           VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="1"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="VMX file"
+                                               VerticalAlignment="Center" />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Full path to the VMware .vmx file. This identifies which virtual machine the service starts, stops and opens in KVM mode." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBox x:Name="VmxPathBox"
                                          Grid.Row="1"
                                          Grid.Column="1"
                                          Margin="0,0,8,0"
-                                         HorizontalScrollBarVisibility="Auto" />
+                                         HorizontalScrollBarVisibility="Auto"
+                                         ToolTip="Full path to the target VMware .vmx file." />
                                 <Button x:Name="BrowseVmxButton"
                                         Grid.Row="1"
                                         Grid.Column="2"
@@ -273,22 +423,72 @@
 
                         <GroupBox Header="Modes">
                             <StackPanel>
-                                <CheckBox x:Name="ServiceAutoStartCheckBox"
-                                          Content="Install service with automatic startup"
-                                          Margin="0,0,0,8" />
-                                <CheckBox x:Name="StartVmOnServiceStartCheckBox"
-                                          Content="Start VM in KVM mode when service starts"
-                                          Margin="0,0,0,8" />
-                                <CheckBox x:Name="BlockCtsShutdownCheckBox"
-                                          Content="Block CTS shutdown"
-                                          Margin="0,0,0,8" />
+                                <StackPanel Orientation="Horizontal"
+                                            Margin="0,0,0,8">
+                                    <CheckBox x:Name="ServiceAutoStartCheckBox"
+                                              Content="Install service with automatic startup"
+                                              ToolTip="When installing the service, register it with Automatic startup so it starts after Windows boots." />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Controls how the service is registered during Install service. When enabled, Windows starts this service automatically after boot." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal"
+                                            Margin="0,0,0,8">
+                                    <CheckBox x:Name="StartVmOnServiceStartCheckBox"
+                                              Content="Start VM in KVM mode when service starts"
+                                              ToolTip="When the service starts, it waits for an active user session and launches the configured VM through vmware-kvm.exe." />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Starts the selected VM in VMware KVM mode when the Windows Service starts. The KVM window is launched into the active console user's desktop session." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal"
+                                            Margin="0,0,0,8">
+                                    <CheckBox x:Name="BlockCtsShutdownCheckBox"
+                                              Content="Block CTS shutdown"
+                                              ToolTip="Testing mode only. CTS changes are logged, but VM and host shutdown are skipped." />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="Testing mode only. Leave this enabled while checking wiring, because CTS is logged without shutting anything down. Turn it OFF for normal operation." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                                 <TextBlock Text="Testing only. Turn this OFF for normal operation so CTS can shut down the VM and host."
                                            TextWrapping="Wrap"
                                            Foreground="#8A4B00"
                                            FontSize="12"
                                            Margin="22,-4,0,10" />
-                                <CheckBox x:Name="ShutdownHostCheckBox"
-                                          Content="Shutdown host after VM stop" />
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox x:Name="ShutdownHostCheckBox"
+                                              Content="Shutdown host after VM stop"
+                                              ToolTip="After the VM stop sequence finishes, schedule shutdown.exe /s for the Windows 11 host." />
+                                    <Border Style="{StaticResource InfoBadgeStyle}">
+                                        <Border.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Style="{StaticResource InfoToolTipTextStyle}"
+                                                           Text="When enabled, the Windows 11 host is powered off after the VM has been soft-stopped or hard-stopped. When disabled, only the VM stop sequence runs." />
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Style="{StaticResource InfoBadgeTextStyle}" />
+                                    </Border>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -300,28 +500,32 @@
                                 Content="Save settings"
                                 MinWidth="118"
                                 Margin="0,0,8,0"
-                                Click="SaveButton_Click" />
+                                Click="SaveButton_Click"
+                                ToolTip="Writes the current GUI values to settings.xml next to the executable." />
                         <Button x:Name="SoftStopButton"
                                 Content="Soft stop VM"
                                 MinWidth="118"
                                 Margin="0,0,8,0"
-                                Click="SoftStopButton_Click" />
+                                Click="SoftStopButton_Click"
+                                ToolTip="Runs VMware soft stop for the selected VM. This asks the guest OS to shut down gracefully." />
                         <Button x:Name="HardStopButton"
                                 Content="Hard stop VM"
                                 MinWidth="118"
                                 Margin="0,0,8,0"
-                                Click="HardStopButton_Click" />
+                                Click="HardStopButton_Click"
+                                ToolTip="Runs VMware hard stop for the selected VM. Use this when soft stop leaves the VM running." />
                         <Button x:Name="ShutdownHostButton"
                                 Content="Shutdown host"
                                 MinWidth="118"
                                 Margin="0"
-                                Click="ShutdownHostButton_Click" />
+                                Click="ShutdownHostButton_Click"
+                                ToolTip="Schedules Windows host shutdown using the configured host shutdown delay." />
                     </WrapPanel>
                 </GroupBox>
 
                 <GroupBox Header="Log" Margin="0">
                     <TextBox x:Name="LogTextBox"
-                             Height="230"
+                             Height="200"
                              IsReadOnly="True"
                              AcceptsReturn="True"
                              TextWrapping="NoWrap"

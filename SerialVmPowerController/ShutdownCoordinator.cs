@@ -167,16 +167,11 @@ namespace SerialVmPowerController
             }
 
             _log.Warning("Starting VMware soft shutdown.");
-            RunVmStop(settings, "soft", settings.SoftTimeoutSeconds);
+            var softStopResult = RunVmStop(settings, "soft", settings.SoftTimeoutSeconds);
 
-            if (IsVmRunning(settings))
+            if (ShouldRunHardStopAfterSoftStop(settings, softStopResult))
             {
-                _log.Warning("VM is still running after soft timeout. Starting hard stop.");
                 RunVmStop(settings, "hard", settings.HardTimeoutSeconds);
-            }
-            else
-            {
-                _log.Info("VM is no longer listed as running.");
             }
 
             if (settings.ShutdownHostAfterVm)
@@ -187,6 +182,48 @@ namespace SerialVmPowerController
             {
                 _log.Warning("Host shutdown is disabled in settings.");
             }
+        }
+
+        /// <summary>
+        /// Decides whether the automatic CTS sequence must continue with a VMware hard stop.
+        /// </summary>
+        /// <remarks>
+        /// Windows XP can reach the "safe to turn off" screen while vmrun soft stop
+        /// waits forever or while vmrun list no longer reports the VM. In that state
+        /// the VMware/KVM window can still be open, so a timed-out or failed soft stop
+        /// is treated as not safely powered off and hard stop is started.
+        /// </remarks>
+        /// <param name="settings">Settings that contain vmrun and VMX paths.</param>
+        /// <param name="softStopResult">Result returned by the VMware soft stop command.</param>
+        /// <returns>True when hard stop should be executed.</returns>
+        private bool ShouldRunHardStopAfterSoftStop(AppSettings settings, ProcessResult softStopResult)
+        {
+            if (softStopResult == null)
+            {
+                _log.Warning("Soft stop result is unknown. Starting hard stop.");
+                return true;
+            }
+
+            if (softStopResult.TimedOut)
+            {
+                _log.Warning("Soft stop timed out. Starting hard stop without trusting vmrun list.");
+                return true;
+            }
+
+            if (!softStopResult.Succeeded)
+            {
+                _log.Warning("Soft stop did not complete successfully. Starting hard stop.");
+                return true;
+            }
+
+            if (IsVmRunning(settings))
+            {
+                _log.Warning("VM is still listed as running after soft stop. Starting hard stop.");
+                return true;
+            }
+
+            _log.Info("VM is no longer listed as running after successful soft stop.");
+            return false;
         }
 
         /// <summary>
